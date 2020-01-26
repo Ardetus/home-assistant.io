@@ -1,52 +1,117 @@
 ---
-layout: page
 title: "Device Tracker"
-description: "Instructions how to setup device tracking within Home Assistant."
-date: 2015-01-20 22:36
-sidebar: true
-comments: false
-sharing: true
-footer: true
+description: "Instructions on how to setup device tracking within Home Assistant."
+logo: home-assistant.png
+ha_category:
+  - Presence Detection
+ha_qa_scale: internal
+ha_release: 0.7
 ---
 
-Home Assistant can get information from your wireless router to track which devices are connected. Please check the sidebar for a list of  brands of supported wireless routers.
+The device tracker allows you to track devices in Home Assistant. This can happen by querying your wireless router or by having applications push location info.
 
-There are also trackers available which uses different technologies like [MQTT](/components/mqtt/) or [Nmap](/components/device_tracker.nmap_scanner/) to scan the network for devices.
+## Configuring a `device_tracker` platform
 
 To get started add the following lines to your `configuration.yaml` (example for Netgear):
 
 ```yaml
 # Example configuration.yaml entry for Netgear device
 device_tracker:
-  platform: netgear
-  host: 192.168.1.1
-  username: admin
-  password: YOUR_PASSWORD
-
-  # Optional configuration
-
-  # If new discovered devices are tracked by default (default: yes)
-  track_new_devices: yes
-  # Seconds between each scan for new devices (default: 12)
-  interval_seconds: 12
-  # Seconds to wait till marking someone as not home after not being seen
-  # (default: 180)
-  consider_home: 180
+  - platform: netgear
+    host: IP_ADDRESS
+    username: YOUR_USERNAME
+    password: YOUR_PASSWORD
+    new_device_defaults:
+      track_new_devices: true
+      hide_if_away: false
 ```
 
-Once tracked, a file will be created in your config dir called `known_devices.yaml`. Edit this file to adjust which devices to be tracked. Here you can also setup a URL for each device to be used as the entity picture and set whether the device will be show in the UI when in the away state.
+The following optional parameters can be used with any platform:
 
-Multiple device trackers can be used in parallel, such as [Owntracks](/components/device_tracker.owntracks/) and [Nmap](/components/device_tracker.nmap_scanner/). The state of the device will be determined by the source that reported last. Device tracker will look for global settings (`track_new_devices`, `consider_home`, and `home_interval`) under the configuration of the first platform.
+<div class='note'>
+  Device tracker will only look for global settings under the configuration of the first configured platform.
+</div>
 
-The optional `consider_home` entry is useful for households with Apple iOS devices that go into sleep mode while still at home to conserve battery life. iPhones will occasionally drop off the network and then re-appear. `consider_home` helps prevent false alarms in presence detection when using IP scanners such as nmap. 
+| Parameter           | Default | Description                                                                                                                                                                                                                                                                                                                                                                               |
+|----------------------|---------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `interval_seconds`   | 12      | Seconds between each scan for new devices                                                                                                                                                                                                                                                                                                                                                 |
+| `consider_home`      | 180     | Seconds to wait till marking someone as not home after not being seen. This parameter is most useful for households with Apple iOS devices that go into sleep mode while still at home to conserve battery life. iPhones will occasionally drop off the network and then re-appear. `consider_home` helps prevent false alarms in presence detection when using IP scanners such as Nmap. `consider_home` accepts various time representations, (e.g., the following all represents 3 minutes: `180`, `0:03`, `0:03:00`)  |
+| `new_device_defaults`|         | Default values for new discovered devices. Available options `track_new_devices` (default: `true`), `hide_if_away` (default: `false`)                                                                                                                                                                                                                                                     |
 
-To add Nmap tracking just add the MAC address to the OwnTracks or iCloud device `mac:` configuration. To use both OwnTracks and Nmap you could use the following example:
+<div class='note'>
+
+  Note that setting `track_new_devices: false` will still result in new devices being recorded in `known_devices.yaml`, but they won't be tracked (`track: false`).
+
+</div>
+
+The extended example from above would look like the following sample:
 
 ```yaml
-owntracksdevicename:
-  name: Friendly Name!
-  mac: EA:AA:55:E7:C6:94
-  picture:
-  track: yes
-  hide_if_away: no
+# Example configuration.yaml entry for Netgear device
+device_tracker:
+  - platform: netgear
+    host: IP_ADDRESS
+    username: YOUR_USERNAME
+    interval_seconds: 10
+    consider_home: 180
+    new_device_defaults:
+      track_new_devices: true
 ```
+
+Multiple device trackers can be used in parallel, such as [Owntracks](/components/owntracks/#using-owntracks-with-other-device-trackers) and [Nmap](/components/nmap_tracker/). The state of the device will be determined by the source that reported last.
+
+## `known_devices.yaml`
+
+<div class='note warning'>
+
+As of 0.94 `known_devices.yaml` is being phased out, and no longer used by all trackers. Depending on the integration you use this section may no longer apply. This includes the mobile app, OwnTracks, GeoFency, GPSLogger, and Locative.
+
+</div>
+
+Once `device_tracker` is enabled, a file will be created in your config dir named `known_devices.yaml`. Edit this file to adjust which devices to be tracked.
+
+Here's an example configuration for a single device:
+
+```yaml
+devicename:
+  name: Friendly Name
+  mac: EA:AA:55:E7:C6:94
+  picture: https://www.home-assistant.io/images/favicon-192x192.png
+  track: true
+  hide_if_away: false
+```
+
+<div class='note warning'>
+
+In the example above, `devicename` refers to the detected name of the device.  For instance, `my_iphone`.
+
+</div>
+
+| Parameter      | Default                       | Description                                                                                             |
+|----------------|-------------------------------|---------------------------------------------------------------------------------------------------------|
+| `name`         | Host name or "Unnamed Device" | The friendly name of the device.                                                                         |
+| `mac`          | None                          | The MAC address of the device. Add this if you are using a network device tracker like Nmap or SNMP.     |
+| `picture`      | None                          | A picture that you can use to easily identify the person or device. You can also save the image file in a folder "www" in the same location (can be obtained from developer tools) where you have your configuration.yaml file and just use `picture: /local/favicon-192x192.png`. The path 'local' is mapped to the 'www' folder you create.                                     |
+| `icon`         | mdi:account                   | An icon for this device (use as an alternative to `picture`).                           |
+| `gravatar`     | None                          | An email address for the device's owner. If provided, it will override `picture`.                        |
+| `track`        | [uses platform setting]       | If  `yes`/`on`/`true` then the device will be tracked. Otherwise its location and state will not update. |
+| `hide_if_away` | false                         | If `yes`/`on`/`true` then the device will be hidden if it is not at home.                                |
+| `consider_home` | [uses platform setting]      | Seconds to wait till marking someone as not home after not being seen. Allows you to override the global `consider_home` setting from the platform configuration on a per device level.                                 |
+
+## Device states
+
+The state of your tracked device will be `'home'` if it is in the [home zone](/components/zone#home-zone), detected by your network or Bluetooth based presence detection. If you're using a presence detection method that includes coordinates then when it's in a zone the state will be the name of the zone (case sensitive). When a device isn't at home and isn't in any zone, the state will be `'not_home'`.
+
+## `device_tracker.see` service
+
+The `device_tracker.see` service can be used to manually update the state of a device tracker:
+
+| Service data attribute | Optional | Description |
+| ---------------------- | -------- | ----------- |
+| `dev_id`               |       no | The second half of the `entity_id`, for example `tardis` for `device_tracker.tardis` |
+| `location_name`        |       no | The location, `home`, `not_home`, or the name of the zone |
+| `host_name`            |      yes | The hostname of the device tracker |
+| `mac`                  |      yes | The MAC address of the entity (only specify if you're updating a network based tracker) |
+| `gps`                  |      yes | If you're providing a location, for example `[51.513845, -0.100539]` |
+| `gps_accuracy`         |      yes | The accuracy of the GPS fix |
+| `battery`              |      yes | The battery level of the device |

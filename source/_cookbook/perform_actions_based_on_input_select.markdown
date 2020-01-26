@@ -1,16 +1,10 @@
 ---
-layout: page
 title: "Perform actions based on input select"
-description: "Example playing media to chromecast based on input select element"
-date: 2016-03-07 12:05
-sidebar: true
-comments: false
-sharing: true
-footer: true
+description: "Example playing media to Chromecast based on input select element"
 ha_category: Automation Examples
 ---
 
-This example uses an [`input_select`](/components/input_select/) element to pick which mp3 file to play on a [Chromecast](components/media_player.cast/).
+This example uses an [`input_select`](/components/input_select/) element to pick which mp3 file to play on a [Chromecast](/components/cast/).
 
 ```yaml
 # Define our dropdown list
@@ -43,8 +37,8 @@ automation:
       service: media_player.play_media
       data:
         entity_id: media_player.nursery
-        media_id: http://fileserver/rain.mp3
-        media_type: audio/mp4
+        media_content_id: http://fileserver/rain.mp3
+        media_content_type: music
 
 
   # If you select "Babbling Brook", play the "babbling_brook.mp3" file
@@ -59,8 +53,8 @@ automation:
       service: media_player.play_media
       data:
         entity_id: media_player.nursery
-        media_id: http://fileserver/babbling_brook.mp3
-        media_type: audio/mp4
+        media_content_id: http://fileserver/babbling_brook.mp3
+        media_content_type: music
 
   # If you select "None, turn the Chromecast off
   - alias: Stop the Lullaby
@@ -75,7 +69,7 @@ automation:
       data:
         entity_id: media_player.nursery
 ```
-A little bit more complex example that uses [`input_select`](/components/input_select/) and template do decide what and in which  [Chromecast](components/media_player.cast/) play.
+A little bit more complex example that uses [`input_select`](/components/input_select/) and template to decide what to play, and which [Chromecast](components/media_player.cast/) to play on.
 
 ```yaml
 input_select:
@@ -166,5 +160,5 @@ automation:
             {% else %}{% endraw %}
               none{% raw %}
             {% endif %}{% endraw %}
-          media_content_type: 'audio/mp4'
+          media_content_type: 'music'
 ```

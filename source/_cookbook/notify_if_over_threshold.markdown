@@ -1,12 +1,6 @@
 ---
-layout: page
 title: "Send notification based on sensor"
 description: "Basic example of how to send a templated notification if a sensor is over a given threshold"
-date: 2016-02-25 15:00
-sidebar: true
-comments: false
-sharing: true
-footer: true
 ha_category: Automation Examples
 ---
 
@@ -27,9 +21,9 @@ automation:
       above: 2
     action:
       service: notify.mypushbullet
-      data:
+      data_template:
         title: "Furnace fan is running"
-        message: "Fan running because current is {% raw %}{{ states.sensor.furnace.state }}{% endraw %} amps"
+        message: "Fan running because current is {% raw %}{{ states('sensor.furnace') }}{% endraw %} amps"
 ```
 
 If you also want a notification when it drops back down below that limit, you could add this as well:
@@ -42,7 +36,7 @@ If you also want a notification when it drops back down below that limit, you co
       below: 2
     action:
       service: notify.mypushbullet
-      data:
+      data_template:
         title: "Furnace fan is stopped"
-        message: "Fan stopped because current is {% raw %}{{ states.sensor.furnace.state }}{% endraw %} amps"
+        message: "Fan stopped because current is {% raw %}{{ states('sensor.furnace') }}{% endraw %} amps"
 ```
